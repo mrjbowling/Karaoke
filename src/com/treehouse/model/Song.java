@@ -19,7 +19,7 @@ public class Song {
         return mArtist;
     }
 
-    public String getmVideoUrl() {
+    public String getVideoUrl() {
         return mVideoUrl;
     }
 

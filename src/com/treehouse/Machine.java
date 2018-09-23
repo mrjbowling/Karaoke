@@ -6,29 +6,30 @@ import com.treehouse.model.Song;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.List;
+import java.util.*;
 
 public class Machine {
 
     private SongBook mSongBook;
     private BufferedReader mReader;
     private Map<String,String> mMenu;
+    private Queue<Song> mSongQueue;
 
     public Machine(SongBook songBook){
         mSongBook = songBook;
         mReader = new BufferedReader(new InputStreamReader(System.in));
         mMenu = new HashMap<String,String>();
+        mSongQueue = new ArrayDeque<Song>();
         mMenu.put("add", "Add a new song to the song book");
         mMenu.put("choose", "Choose a song to sing!");
+        mMenu.put("play", "Play next song");
         mMenu.put("quit", "Exit the program");
     }
 
     private String promptAction() throws IOException {
-        System.out.printf("There are %d songs available.  Your options are %n",
-                mSongBook.getSongCount());
+        System.out.printf("There are %d songs available and %d in the queue.  Your options are %n",
+                mSongBook.getSongCount(),
+                mSongQueue.size());
         for (Map.Entry<String,String> option : mMenu.entrySet()){
             System.out.printf("%s - %s %n", option.getKey(), option.getValue());
         }
@@ -46,12 +47,16 @@ public class Machine {
                     case "add":
                         Song song = promptNewSong();
                         mSongBook.addSong(song);
-                        System.out.println("%s added! %n%n");
+                        System.out.printf("%s added! %n%n", song);
                         break;
                     case "choose":
                         String artist = promptArtist();
                         Song artistSong = promptSongForArtist(artist);
+                        mSongQueue.add(artistSong);
                         System.out.printf("You chose: %s%n", artistSong);
+                        break;
+                    case "play":
+                        playNext();
                         break;
                     case "quit":
                         System.out.println("Thanks for playing");
@@ -89,6 +94,7 @@ public class Machine {
         for (Song song : songs) {
             songTitles.add(song.getTitle());
         }
+        System.out.printf("Available songs for %s: %n", artist);
         int index = promptForIndex(songTitles);
         return songs.get(index);
     }
@@ -99,9 +105,19 @@ public class Machine {
             System.out.printf("%d.) %s %n", counter, option);
             counter++;
         }
+        System.out.println("Your choice:   ");
         String optionAsString = mReader.readLine();
         int choice = Integer.parseInt(optionAsString.trim());
-        System.out.println("Your choice:   ");
         return choice - 1;
+    }
+
+    public void playNext() {
+        Song song = mSongQueue.poll();
+        if (song == null) {
+            System.out.println("There are no songs in the queue.  " +
+                    "You can add some from the menu");
+        } else {
+            System.out.printf("%n%n%n    Open %s to hear %s by %s %n%n%n", song.getVideoUrl(),song.getTitle(),song.getArtist());
+        }
     }
 }
